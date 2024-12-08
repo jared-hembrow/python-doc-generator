@@ -2,7 +2,7 @@ import mod
 import mod.com
 import os
 from fs import Files
-from utils import cli
+from utils.cli import Cli
 import sys
 # import argparse
 
@@ -29,6 +29,6 @@ import sys
 # fs = Files('mod')
 # fs.run()
 # print(fs.files)
-cli = cli.Cli()
+cli = Cli()
 cli.run()
 # print(sys.argv[1:])
