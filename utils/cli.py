@@ -1,7 +1,10 @@
 import argparse
 from utils.files import gather_files, import_module_from_file, extract_function_docstrings,group_files_by_folder
 from utils.html import FuncDoc,HtmlBody,ModuleDoc,FolderDoc,FileDoc, Doc
+from utils.docs import FileTree
 from docstring_parser.common import Docstring
+import json
+from os.path import isdir
 class Cli():
     """_summary_
     """
@@ -14,6 +17,7 @@ class Cli():
     def __init__(self): 
         # Parse args given
         parser = argparse.ArgumentParser()
+        parser.add_argument("-i", "--interactive", action='store_true', help="Interactive Mode", default=False)
         parser.add_argument("-p", "--path", help="Path")
         parser.add_argument("-o", "--out", help="Output path",default="output")
         self.args = parser.parse_args()
@@ -122,26 +126,81 @@ class Cli():
             #     # print("Doc strings: ", print(tree[item][f]['docs']['doc_strings']))    
         return tree_list
     
-    
-    def run(self):
-        # Print welcome message
+    def run_interactive_mode(self):
+        
+        # Get user input for the root folder to document
+        input_path = None
+        # Loop till user enters a valid path
+        while input_path is None:
+            user_input = input("Please enter the path you wish to Document: ")
+            if isdir(user_input):
+                input_path = user_input
+            else:
+                print("This is an invalid path, please try again")
+        
+        # Get user input for output
+        output_path = input("Please enter an output path: ")
+        
+        # Assign user input as properties
+        self.root_path = input_path
+        self.output_path = output_path
+
+    def display_config(self):
         self.print_text(\
             "###############################\nWelcome to docstring parsing\n###############################",
             color="green")
-        self.print_text(f"Args: {self.args}", color="red")
-        self.find_all_files()
-        self.get_all_modules(self.file_tree)
-        print("Finished tree", self.file_tree)
-        print("\n\n")
-        tree_list = self.create_tree(self.file_tree)
-        print("FINAL:", tree_list)
-        for folder in tree_list:
-            print("FINAL FOLDER:", folder, folder.name)
-            for item in folder.items:
-                print("\t", item, item.items)
-                for it in item.items:
-                    print("\t\t", it, it.name)
-                    print("\t\t\t", it.docstring)
-        html_body = HtmlBody(tree_list)
-        html_body.build_html()
-        html_body.write_html_file(self.output_path)
+        self.print_text(f"Input Path: {self.root_path}", color="blue")
+        self.print_text(f"Output Path: {self.output_path}",color="blue")
+    
+    def print_doc_item(self, doc_item, level=1):
+        self.print_text(f"{"".join(["\t" for i in range(0, level)])}∟ {doc_item['name']} -- {doc_item} -- {"Class" if doc_item['sub_doc_strings'] is not None else "Function"}", color="yellow" if doc_item['sub_doc_strings'] is not None else "blue")
+        if doc_item['sub_doc_strings'] is not None:
+            for sub_item in doc_item['sub_doc_strings']['doc_strings']:
+                self.print_doc_item(sub_item, level=level+1)
+    
+    
+    def print_file_detail(self, file_detail, level=1):
+        self.print_text(f"{"".join([
+            "\t" for i in range(0, level)
+            ])}∟ {file_detail['name']} -- Doc Strings: {len(file_detail['doc_string']) if 'doc_string' in file_detail and file_detail['doc_string'] is not None else ''} ", color="cyan")
+        if file_detail['doc_string'] is not None and 'doc_strings' in file_detail['doc_string']:
+            for doc_string in file_detail['doc_string']['doc_strings']:
+                self.print_doc_item(doc_string, level=level+1)
+    
+    def print_folder_branch(self, branch, level=1):
+        self.print_text(f"{"".join(["\t" for i in range(0, level)])}∟ {branch['name']} -- Items: {len(branch["items"])} -- Folders: {len(branch['folders']) if "folders" in branch else "0"}", color="magenta")
+        if "items" in branch:
+            for item in branch['items']:
+                self.print_file_detail(item, level=level+1)
+        if "folders" in branch:
+            for folder in branch['folders']:
+                self.print_folder_branch(folder, level=level+1)
+    
+    
+
+    
+    def run(self):
+        print(self.args)
+        
+        # Configure Object
+        if self.args.interactive:
+            print("Is Interactive")
+            self.run_interactive_mode()
+            
+        # Display Objects configuration
+        self.display_config()
+        
+        
+        # Get File tree
+        self.file_tree = FileTree(self.root_path)
+
+        
+        # Display File Tree
+        self.print_folder_branch(self.file_tree.root_folder, level=0)
+        
+        with open('tree.json', 'w') as jj:
+            json.dump(self.file_tree.root_folder, jj, indent=4)
+        
+        # html_body = HtmlBody(tree_list)
+        # html_body.build_html()
+        # html_body.write_html_file(self.output_path)

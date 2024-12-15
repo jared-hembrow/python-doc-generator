@@ -1,0 +1,305 @@
+{
+    "type": "folder",
+    "path": "./utils",
+    "name": "utils",
+    "items": [
+        {
+            "type": "file",
+            "file_type": ".py",
+            "path": "./utils/files.py",
+            "file_name": "files.py",
+            "name": "files",
+            "doc_string": {
+                "name": "module.name",
+                "doc_strings": [
+                    {
+                        "name": "gather_files",
+                        "sub_doc_strings": null,
+                        "doc_string": {
+                            "meta": [
+                                {
+                                    "args": [
+                                        "param",
+                                        "path (str)"
+                                    ],
+                                    "description": "Path to where to begin search",
+                                    "arg_name": "path",
+                                    "type_name": "str",
+                                    "is_optional": false,
+                                    "default": null
+                                },
+                                {
+                                    "args": [
+                                        "param",
+                                        "recursive (bool, optional)"
+                                    ],
+                                    "description": "Continue into sub folders. Defaults to True.",
+                                    "arg_name": "recursive",
+                                    "type_name": "bool",
+                                    "is_optional": true,
+                                    "default": "True"
+                                },
+                                {
+                                    "args": [
+                                        "param",
+                                        "file_type (str, optional)"
+                                    ],
+                                    "description": "File extension. Defaults to '.py'.",
+                                    "arg_name": "file_type",
+                                    "type_name": "str",
+                                    "is_optional": true,
+                                    "default": "'.py'"
+                                },
+                                {
+                                    "args": [
+                                        "returns",
+                                        "FolderDoc"
+                                    ],
+                                    "description": "A tree of files",
+                                    "type_name": "FolderDoc",
+                                    "is_generator": false,
+                                    "return_name": null
+                                }
+                            ],
+                            "short_description": "Find all files of a type",
+                            "blank_after_short_description": true,
+                            "blank_after_long_description": false,
+                            "style": {
+                                "name": "GOOGLE",
+                                "value": 2
+                            }
+                        }
+                    },
+                    {
+                        "name": "import_module_from_file",
+                        "sub_doc_strings": null,
+                        "doc_string": {
+                            "meta": [
+                                {
+                                    "args": [
+                                        "param",
+                                        "file_path (str)"
+                                    ],
+                                    "description": "path to file",
+                                    "arg_name": "file_path",
+                                    "type_name": "str",
+                                    "is_optional": false,
+                                    "default": null
+                                },
+                                {
+                                    "args": [
+                                        "returns",
+                                        "module"
+                                    ],
+                                    "description": "python file as module",
+                                    "type_name": "module",
+                                    "is_generator": false,
+                                    "return_name": null
+                                }
+                            ],
+                            "short_description": "Dynamically import python module from a file path",
+                            "blank_after_short_description": true,
+                            "blank_after_long_description": false,
+                            "style": {
+                                "name": "GOOGLE",
+                                "value": 2
+                            }
+                        }
+                    },
+                    {
+                        "name": "extract_function_docstrings",
+                        "sub_doc_strings": null,
+                        "doc_string": {
+                            "meta": [
+                                {
+                                    "args": [
+                                        "param",
+                                        "module (module)"
+                                    ],
+                                    "description": "python module to extract docstring",
+                                    "arg_name": "module",
+                                    "type_name": "module",
+                                    "is_optional": false,
+                                    "default": null
+                                },
+                                {
+                                    "args": [
+                                        "returns",
+                                        "Docstring"
+                                    ],
+                                    "description": "List of docstring objects",
+                                    "type_name": "Docstring",
+                                    "is_generator": false,
+                                    "return_name": null
+                                }
+                            ],
+                            "short_description": "_summary_",
+                            "blank_after_short_description": true,
+                            "blank_after_long_description": false,
+                            "style": {
+                                "name": "GOOGLE",
+                                "value": 2
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "file",
+            "file_type": ".py",
+            "path": "./utils/html.py",
+            "file_name": "html.py",
+            "name": "html",
+            "doc_string": null
+        },
+        {
+            "type": "file",
+            "file_type": ".py",
+            "path": "./utils/__init__.py",
+            "file_name": "__init__.py",
+            "name": "__init__",
+            "doc_string": null
+        },
+        {
+            "type": "file",
+            "file_type": ".py",
+            "path": "./utils/docs.py",
+            "file_name": "docs.py",
+            "name": "docs",
+            "doc_string": null
+        },
+        {
+            "type": "file",
+            "file_type": ".py",
+            "path": "./utils/cli.py",
+            "file_name": "cli.py",
+            "name": "cli",
+            "doc_string": {
+                "name": "module.name",
+                "doc_strings": [
+                    {
+                        "name": "Cli",
+                        "sub_doc_strings": {
+                            "name": "Cli",
+                            "doc_strings": [
+                                {
+                                    "name": "print_text",
+                                    "sub_doc_strings": null,
+                                    "doc_string": {
+                                        "meta": [
+                                            {
+                                                "args": [
+                                                    "param",
+                                                    "text (_type_)"
+                                                ],
+                                                "description": "_description_",
+                                                "arg_name": "text",
+                                                "type_name": "_type_",
+                                                "is_optional": false,
+                                                "default": null
+                                            },
+                                            {
+                                                "args": [
+                                                    "param",
+                                                    "color (str, optional)"
+                                                ],
+                                                "description": "_description_. Defaults to 'white'.",
+                                                "arg_name": "color",
+                                                "type_name": "str",
+                                                "is_optional": true,
+                                                "default": "'white'"
+                                            }
+                                        ],
+                                        "short_description": "_summary_",
+                                        "blank_after_short_description": true,
+                                        "blank_after_long_description": false,
+                                        "style": {
+                                            "name": "GOOGLE",
+                                            "value": 2
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "doc_string": {
+                            "meta": [],
+                            "short_description": "_summary_",
+                            "blank_after_short_description": false,
+                            "blank_after_long_description": false,
+                            "style": {
+                                "name": "REST",
+                                "value": 1
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "folders": [
+        {
+            "type": "folder",
+            "path": "./utils/fft",
+            "name": "fft",
+            "items": [
+                {
+                    "type": "file",
+                    "file_type": ".py",
+                    "path": "./utils/fft/giga.py",
+                    "file_name": "giga.py",
+                    "name": "giga",
+                    "doc_string": {
+                        "name": "module.name",
+                        "doc_strings": [
+                            {
+                                "name": "giga",
+                                "sub_doc_strings": null,
+                                "doc_string": {
+                                    "meta": [
+                                        {
+                                            "args": [
+                                                "param",
+                                                "name (_type_)"
+                                            ],
+                                            "description": "_description_",
+                                            "arg_name": "name",
+                                            "type_name": "_type_",
+                                            "is_optional": false,
+                                            "default": null
+                                        },
+                                        {
+                                            "args": [
+                                                "returns",
+                                                "_type_"
+                                            ],
+                                            "description": "_description_",
+                                            "type_name": "_type_",
+                                            "is_generator": false,
+                                            "return_name": null
+                                        }
+                                    ],
+                                    "short_description": "_summary_",
+                                    "blank_after_short_description": true,
+                                    "blank_after_long_description": false,
+                                    "style": {
+                                        "name": "GOOGLE",
+                                        "value": 2
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "file",
+                    "file_type": ".py",
+                    "path": "./utils/fft/__init__.py",
+                    "file_name": "__init__.py",
+                    "name": "__init__",
+                    "doc_string": null
+                }
+            ]
+        }
+    ]
+}
