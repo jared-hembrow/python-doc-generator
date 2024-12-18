@@ -1,17 +1,17 @@
 from os.path import isdir
 from os import mkdir
 
-class HtmlBody:
-    def __init__(self, item_tree):
-        self.item_tree = item_tree
-    
+
+class Html:
+
     def write_html_file(self, path):
         if not isdir(path):
             mkdir(path)
         with open(f"{path}/index.html", "w") as file:
             file.write(self.html)
-    
-    def build_html(self):
+
+    def build_html(self, tree):
+        print(tree)
         self.html = f"""<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -20,81 +20,58 @@ class HtmlBody:
     <title>Documentation</title>
   </head>
   <body>
-  {''.join([item.build_component() for item in self.item_tree])}
+  {self.build_folder(tree)}
   </body>
 </html>
 """
 
-class DocNode:
-    def build_component(self):
+    def build_folder(self, folder):
         return f"""<details>
-        <summary>{self.name}</summary>
-        <p>
-        {''.join([item.build_component() for item in self.items])}
-        </p>
+        <h1>{folder['name'] if "name" in folder else ""}</h1>
+        <section>
+        {''.join([self.build_file(item) for item in folder['items']] if "items" in folder else "")}
+        </section>
         </details>"""
 
-class Doc():
-    def __init__(self, name, docstring):
-        self.name= name
-        self.docstring = docstring
-    def build_component(self):
-        return f"""<details>
-        <summary>{self.name}</summary>
-        <p>
-        {self.docstring.description}
-        </p>
-        </details>"""
-        
-class FileDoc(DocNode):
-    def __init__(self,  name, items=[]):
-    
-        self.name = name
-        self.items = items
+    def build_file(self, file):
+        if file["doc_strings"] is None:
+            return ""
+        print("File", file)
+        start_tag = "<details>"
+        title = f"<summary>{file['name']}</summary>"
+        content = f"<p>{''.join([self.build_item(item) for item in file['doc_strings']['doc_strings']])}</p>"
+        end_tag = "</details>"
+        return start_tag + title + content + end_tag
 
-    def add_docstring(self, docstring):
-        self.items.append(docstring)
+    def build_item(self, item):
+        print("ITEM", item)
+        start_tag = '<article class="item">'
+        title = f"<h3>{item['name']}</h3>"
+        meta_items = self.build_meta_items(
+            item["doc_strings"]["meta"] if item["doc_strings"] else ""
+        )
+        sub_items = (
+            self.build_sub_item(item["sub_doc_strings"])
+            if item["sub_doc_strings"]
+            else ""
+        )
+        end_tag = "</article>"
+        return start_tag + title + meta_items + sub_items + end_tag
 
+    def build_sub_item(self, sub_item):
+        print("ITEM", sub_item)
+        sub_list = []
+        for item in sub_item["doc_strings"]:
+            sub_list.append(self.build_item(item))
+        return "".join(sub_list)
 
-class FolderDoc(DocNode):
-    def __init__(self, name, items=[]):
-        self.name = name
-        self.items = items
-        
-    def add_module(self, module):
-        self.items.append(module)
-    
+    def build_meta_items(self, items):
+        params = [item for item in items if item["args"][0] == "param"]
+        returns = [item for item in items if item["args"][0] == "returns"]
+        params_tag = f" {'<h3>Params</h3>' if len(params) > 0 else ''}{''.join([self.build_list_item(item) for item in params])}"
+        returns_tag = f"{'<h3>Returns</h3>' if len(returns) > 0 else ''}{''.join([self.build_list_item(item) for item in returns])}"
+        return params_tag + returns_tag
 
-
-class ModuleDoc:
-    def __init__(self, module_name, func_list):
-        self.module_name = module_name
-        self.func_list = func_list
-    
-    def add_func(self, func):
-        self.func_list.append(func)
-    
-    def build_component(self):
-         return f"""<details>
-        <summary>{self.module_name}</summary>
-        <p>
-        {''.join([func.build_component() for func in self.func_list])}
-        </p>
-        </details>"""
-
-class FuncDoc:
-    
-    def __init__(self,func_name, doc_string):
-        self.func_name = func_name
-        self.doc_string = doc_string
-        
-    def build_html(self):
-        return self.build_component(self.func_name, self.doc_string.description)
-        
-    
-    def build_component(self):
-        return f"""<div>
-        <h1>{self.func_name}</h1>
-        <p>{self.doc_string.description}</p>
-        </div>"""
-    
+    def build_list_item(self, item):
+        print("LIST ITEM", item)
+        return f'<li class="doc-string-list-item">{item['arg_name'] if "arg_name" in item else ''} ({item['type_name']}){item['description']}</li>'

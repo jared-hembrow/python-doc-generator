@@ -148,6 +148,64 @@
         {
             "type": "file",
             "file_type": ".py",
+            "path": "./utils/terminal.py",
+            "file_name": "terminal.py",
+            "name": "terminal",
+            "doc_string": {
+                "name": "module.name",
+                "doc_strings": [
+                    {
+                        "name": "TerminalPrint",
+                        "sub_doc_strings": {
+                            "name": "TerminalPrint",
+                            "doc_strings": [
+                                {
+                                    "name": "print",
+                                    "sub_doc_strings": null,
+                                    "doc_string": {
+                                        "meta": [
+                                            {
+                                                "args": [
+                                                    "param",
+                                                    "text (str)"
+                                                ],
+                                                "description": "Text that will be printed to terminal",
+                                                "arg_name": "text",
+                                                "type_name": "str",
+                                                "is_optional": false,
+                                                "default": null
+                                            },
+                                            {
+                                                "args": [
+                                                    "param",
+                                                    "color (str, optional)"
+                                                ],
+                                                "description": "color of the text. Defaults to \"white\".",
+                                                "arg_name": "color",
+                                                "type_name": "str",
+                                                "is_optional": true,
+                                                "default": "\"white\""
+                                            }
+                                        ],
+                                        "short_description": "Print text to the terminal with the option to choose what color the text will be displayed in",
+                                        "blank_after_short_description": true,
+                                        "blank_after_long_description": false,
+                                        "style": {
+                                            "name": "GOOGLE",
+                                            "value": 2
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "doc_string": null
+                    }
+                ]
+            }
+        },
+        {
+            "type": "file",
+            "file_type": ".py",
             "path": "./utils/html.py",
             "file_name": "html.py",
             "name": "html",
@@ -217,6 +275,21 @@
                                         "style": {
                                             "name": "GOOGLE",
                                             "value": 2
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "run",
+                                    "sub_doc_strings": null,
+                                    "doc_string": {
+                                        "meta": [],
+                                        "short_description": "Run The main CLI program",
+                                        "long_description": "Stage 1 - Get parameters from flags or through interactive mode\nStage 2 - Get Files and doc strings\nstage 3 - Output HTML & CSS files",
+                                        "blank_after_short_description": false,
+                                        "blank_after_long_description": false,
+                                        "style": {
+                                            "name": "REST",
+                                            "value": 1
                                         }
                                     }
                                 }
