@@ -17,7 +17,7 @@ class Cli:
     file_type = ".py"
 
     def __init__(self):
-        # Parse args given
+        # Parse args given in initial command
         parser = argparse.ArgumentParser()
         parser.add_argument(
             "-i",
@@ -29,6 +29,8 @@ class Cli:
         parser.add_argument("-p", "--path", help="Path")
         parser.add_argument("-o", "--out", help="Output path", default="output")
         self.args = parser.parse_args()
+
+        # Property for object that will handle printing to terminal
         self.print = TerminalPrint()
 
     def run_interactive_mode(self):
@@ -50,13 +52,7 @@ class Cli:
         self.root_path = input_path
         self.output_path = output_path
 
-    def run(self):
-        """Run The main CLI program
-        Stage 1 - Get parameters from flags or through interactive mode
-        Stage 2 - Get Files and doc strings
-        stage 3 - Output HTML & CSS files
-        """
-
+    def config_stage(self):
         #  STAGE 1:
         # Configure Object
         if self.args.interactive:
@@ -74,6 +70,7 @@ class Cli:
             }
         )
 
+    def files_and_doc_strings_stage(self):
         # STAGE 2:
         # Get File tree
         self.file_tree = FileTree(self.root_path)
@@ -84,10 +81,24 @@ class Cli:
         # with open('tree.json', 'w') as jj:
         #     json.dump(self.file_tree.root_folder, jj, indent=4)
 
+    def build_output_stage(self):
         # STAGE 3:
         html_builder = Html()
         html_builder.build_html(self.file_tree.root_folder)
         html_builder.write_html_file(self.output_path)
-        # html_body = HtmlBody(tree_list)
-        # html_body.build_html()
-        # html_body.write_html_file(self.output_path)
+
+    def run(self):
+        """Run The main CLI program
+        Stage 1 - Get parameters from flags or through interactive mode
+        Stage 2 - Get Files and doc strings
+        stage 3 - Output HTML & CSS files
+        """
+
+        #  STAGE 1:
+        self.config_stage()
+
+        # STAGE 2:
+        self.files_and_doc_strings_stage()
+
+        # STAGE 3:
+        self.build_output_stage()

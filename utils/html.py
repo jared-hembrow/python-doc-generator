@@ -3,6 +3,53 @@ from os import mkdir
 
 
 class Html:
+    style = """
+    <style>
+  body {
+    font-family: sans-serif;
+    margin: 0;
+  }
+  
+  .container {
+    margin: 20px;
+  }
+  
+  details {
+    margin: 1rem 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 1rem;
+    background-color: #f8f8f8; /* Light gray background */
+  }
+  
+  summary {
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  section {
+    margin-left: 1rem;
+  }
+  
+  .item {
+    margin: 0.5rem 0;
+    border: 1px solid #eee;
+    border-radius: 3px;
+    padding: 0.5rem;
+    background-color: #f0f0f0; /* Lighter gray background */
+  }
+  
+  .item h3 {
+    margin-bottom: 0.25rem;
+  }
+  
+  .doc-string-list-item {
+    margin-left: 1rem;
+    list-style-type: disc;
+  }
+  
+</style>
+    """
 
     def write_html_file(self, path):
         if not isdir(path):
@@ -19,19 +66,25 @@ class Html:
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Documentation</title>
   </head>
+  {self.style}
   <body>
+  <section class="container">
   {self.build_folder(tree)}
+  </section>
   </body>
 </html>
 """
 
     def build_folder(self, folder):
+        print("\n\nFOLDER:", folder, "\n\n")
         return f"""<details>
-        <h1>{folder['name'] if "name" in folder else ""}</h1>
+        <summary>{folder['name'] if "name" in folder else ""}</summary>
         <section>
         {''.join([self.build_file(item) for item in folder['items']] if "items" in folder else "")}
         </section>
-        </details>"""
+        </details>
+        {''.join([self.build_folder(folder_item) for folder_item in folder['folders']]) if "folders" in folder else ""}
+        """
 
     def build_file(self, file):
         if file["doc_strings"] is None:

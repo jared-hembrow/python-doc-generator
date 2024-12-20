@@ -1,7 +1,5 @@
 class TerminalPrint:
     COLORS = {
-        # "bold": "\033[1m",
-        # "underline": "\033[4m",
         "black": "\033[30m",
         "red": "\033[31m",
         "green": "\033[32m",

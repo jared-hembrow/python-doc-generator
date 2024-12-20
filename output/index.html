@@ -5,12 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Documentation</title>
   </head>
+  
+    <style>
+  body {
+    font-family: sans-serif;
+    margin: 0;
+  }
+  
+  .container {
+    margin: 20px;
+  }
+  
+  details {
+    margin: 1rem 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 1rem;
+    background-color: #f8f8f8; /* Light gray background */
+  }
+  
+  summary {
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  section {
+    margin-left: 1rem;
+  }
+  
+  .item {
+    margin: 0.5rem 0;
+    border: 1px solid #eee;
+    border-radius: 3px;
+    padding: 0.5rem;
+    background-color: #f0f0f0; /* Lighter gray background */
+  }
+  
+  .item h3 {
+    margin-bottom: 0.25rem;
+  }
+  
+  .doc-string-list-item {
+    margin-left: 1rem;
+    list-style-type: disc;
+  }
+  
+</style>
+    
   <body>
+  <section class="container">
   <details>
-        <h1>utils</h1>
+        <summary>utils</summary>
         <section>
         <details><summary>terminal</summary><p><article class="item"><h3>TerminalPrint</h3> <article class="item"><h3>print</h3> <h3>Params</h3><li class="doc-string-list-item">text (str)Text that will be printed to terminal</li><li class="doc-string-list-item">color (str)color of the text. Defaults to "white".</li></article></article></p></details><details><summary>docs</summary><p><article class="item"><h3>FileTree</h3> <article class="item"><h3>import_module_from_file</h3> <h3>Params</h3><li class="doc-string-list-item">file_path (str)path to file</li><h3>Returns</h3><li class="doc-string-list-item"> (module)python file as module</li></article><article class="item"><h3>extract_function_docstrings</h3> <h3>Params</h3><li class="doc-string-list-item">module (module)python module to extract docstring</li><h3>Returns</h3><li class="doc-string-list-item"> (Docstring)List of docstring objects</li></article></article></p></details><details><summary>cli</summary><p><article class="item"><h3>Cli</h3> <article class="item"><h3>run</h3> </article></article></p></details>
         </section>
         </details>
+        <details>
+        <summary>fft</summary>
+        <section>
+        <details><summary>giga</summary><p><article class="item"><h3>giga</h3> <h3>Params</h3><li class="doc-string-list-item">name (_type_)_description_</li><h3>Returns</h3><li class="doc-string-list-item"> (_type_)_description_</li></article></p></details>
+        </section>
+        </details>
+        
+        
+        
+  </section>
   </body>
 </html>
