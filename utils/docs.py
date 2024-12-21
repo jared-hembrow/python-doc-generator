@@ -5,14 +5,43 @@ from importlib.util import spec_from_file_location, module_from_spec
 
 
 class FileTree:
+    """
+    This class represents a file tree structure for a codebase.
+
+    Attributes:
+        root_path (str): The path to the root directory of the file tree.
+        file_type (str, optional): The file extension to search for (defaults to ".py").
+        docstring_index (list): A list to keep track of processed function names.
+        root_folder (dict): A dictionary representing the root folder of the tree.
+    """
 
     def __init__(self, root_path, file_type=".py"):
+        """
+        Initializes a FileTree object.
+
+        Args:
+            root_path (str): The path to the root directory of the file tree.
+            file_type (str, optional): The file extension to search for (defaults to ".py").
+        """
+
         self.root_path = root_path
         self.file_type = file_type
         self.docstring_index = []
         self.root_folder = self.search_folder(self.root_path, self.file_type)
 
     def search_folder(self, path, file_type):
+        """
+        Recursively builds a dictionary representation of a folder and its contents.
+
+        Args:
+            path (str): The path to the folder.
+            file_type (str): The file extension to search for.
+
+        Returns:
+            dict: A dictionary representing the folder structure, including subfolders,
+            files, and their docstrings (if any).
+        """
+
         folder = {"type": "folder", "path": path, "name": basename(path), "items": []}
 
         for f in listdir(path):
@@ -37,13 +66,14 @@ class FileTree:
         return folder
 
     def import_module_from_file(self, file_path):
-        """Dynamically import python module from a file path
+        """
+        Dynamically imports a Python module from a file path.
 
         Args:
-            file_path (str): path to file
+            file_path (str): The path to the Python file.
 
         Returns:
-            module: python file as module
+            module: The imported Python module.
         """
 
         spec = spec_from_file_location("module.name", file_path)
@@ -52,14 +82,17 @@ class FileTree:
         return module
 
     def extract_function_docstrings(self, module):
-        """_summary_
+        """
+        Extracts docstrings from functions and sub-functions within a module.
 
         Args:
-            module (module): python module to extract docstring
+            module (module): The Python module to extract docstrings from.
 
         Returns:
-            Docstring: List of docstring objects
+            dict (or None): A dictionary containing the module name and a list of
+            extracted docstring information, or None if no docstrings are found.
         """
+
         doc_strings = []
         for name, obj in module.__dict__.items():
             if callable(obj) and obj.__module__.startswith("module.name"):
@@ -83,6 +116,16 @@ class FileTree:
         return {"name": module.__name__, "doc_strings": doc_strings}
 
     def parse_doc_string(self, docstring):
+        """
+        Parses an AST representation of a docstring into a dictionary.
+
+        Args:
+            docstring (ast.AST): The AST representation of the docstring.
+
+        Returns:
+            dict: A dictionary containing the extracted information from the docstring,
+            including potential metadata (if present).
+        """
 
         converted = {"meta": []}
         for name, obj in docstring.__dict__.items():
@@ -103,4 +146,16 @@ class FileTree:
         return converted
 
     def get_docstring(self, path):
+        """
+        Extracts docstrings from a Python file at the specified path.
+
+        Args:
+            path (str): The path to the Python file.
+
+        Returns:
+            dict (or None): A dictionary containing the module name and a list of
+            extracted docstring information, or None if the file cannot be imported
+            or no docstrings are found.
+        """
+
         return self.extract_function_docstrings(self.import_module_from_file(path))
