@@ -101,8 +101,10 @@ class PrintInfoToTerminal(Print):
             if "directories" in branch
             else ""
         )
+        tabs = ["\t" for i in range(0, level)]
+
         self.print(
-            f"{"".join(["\t" for i in range(0, level)])}∟ {directory_name}{files_count}{directories_count}",
+            f"{"".join(tabs)}∟ {directory_name}{files_count}{directories_count}",
             color="magenta",
         )
         if "files" in branch:
@@ -142,8 +144,8 @@ class PrintInfoToTerminal(Print):
                 for func in file["content"]["functions"]:
                     self.print_doc_item(func, level=level + 1)
             if "classes" in file["content"]:
-                for cl in file["content"]["classes"]:
-                    self.print_class_item(cl, level=level + 1)
+                for class_item in file["content"]["classes"]:
+                    self.print_class_item(class_item, level=level + 1)
 
     def print_doc_item(self, doc_item, doc_type="Function", level=1):
         """
@@ -157,7 +159,8 @@ class PrintInfoToTerminal(Print):
         Returns:
             None
         """
-        colors = {"Class": "blue", "Function": "yellow", "Method": "magenta"}
+
+        colors = {"Cla'ss": "blue", "Function": "yellow", "Method": "magenta"}
         doc_name = doc_item["name"]
 
         text_color = colors[doc_type] if doc_type in colors else "white"
@@ -168,6 +171,16 @@ class PrintInfoToTerminal(Print):
         )
 
     def print_class_item(self, class_item, level=1):
+        """
+        Prints information about a class and its methods.
+
+        Args:
+            self: The instance of the class calling this method.
+            class_item: A dictionary representing the class, containing keys like
+                    "name", "docstring", and a list of "methods".
+            level: The current indentation level for printing (default: 1).
+        """
+
         self.print_doc_item(class_item, doc_type="Class", level=level)
         for method in class_item["methods"]:
             self.print_doc_item(method, doc_type="Method", level=level + 1)

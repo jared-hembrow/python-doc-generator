@@ -1,9 +1,13 @@
+"""
+CLI Class
+"""
+
 import argparse
-from utils.output import Builder
-from utils.terminal import PrintInfoToTerminal
-from utils.docs import FileTools
 from os.path import isdir, abspath
 from os import mkdir
+from utils.output import Builder
+from utils.terminal import PrintInfoToTerminal
+from utils.file_tools import FileTools
 
 
 class Cli(PrintInfoToTerminal):
@@ -32,7 +36,7 @@ class Cli(PrintInfoToTerminal):
     root_path = "./"
     output_path = "output"
     output_type = "html"
-    # file_tree = {}
+    file_tree = {}
 
     def __init__(self):
         """
@@ -185,24 +189,24 @@ class Cli(PrintInfoToTerminal):
         try:
             if not isdir(path):
                 mkdir(path)
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             self.print(
                 f"FileNotFoundError: The parent directory for '{path}' does not exist."
             )
             return False
-        except PermissionError as e:
+        except PermissionError:
             self.print(
                 f"PermissionError: You do not have permission to create the directory '{path}'."
             )
             return False
-        except OSError as e:
+        except OSError as error:
             self.print(
-                f"OSError: An error occurred while creating the directory '{path}': {e}"
+                f"OSError: An error occurred while creating the directory '{path}': {error}"
             )
             return False
-        except Exception as e:
+        except Exception as error:
             self.print(
-                f"An unexpected error occurred while creating the directory '{path}': {e}"
+                f"An unexpected error occurred while creating the directory '{path}': {error}"
             )
             return False
         return True
@@ -251,7 +255,7 @@ class Cli(PrintInfoToTerminal):
         if result is not None:
             self.print(result, color="red")
         else:
-            self.print(f"Output complete", color="green")
+            self.print("Output complete", color="green")
 
     def run(self):
         """Run The main CLI program
@@ -259,16 +263,16 @@ class Cli(PrintInfoToTerminal):
         Stage 2 - Get Files and doc strings
         stage 3 - Output HTML & CSS files
         """
-        try:
-            #  STAGE 1:
-            self.config_stage()
+        # try:
+        #  STAGE 1:
+        self.config_stage()
 
-            # STAGE 2:
-            self.files_and_doc_strings_stage()
-            self.print_directory_branch(self.file_tree, level=0)
+        # STAGE 2:
+        self.files_and_doc_strings_stage()
+        self.print_directory_branch(self.file_tree, level=0)
 
-            # STAGE 3:
-            self.build_output_stage()
+        # STAGE 3:
+        self.build_output_stage()
 
-        except Exception as e:
-            self.print(f"Error: {e}", color="red")
+        # except Exception as error:
+        #     self.print(f"Main Error: {error}", color="red")

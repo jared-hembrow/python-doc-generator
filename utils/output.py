@@ -1,45 +1,73 @@
-from .terminal import Print
+"""
+This module provides classes for generating various types of documentation 
+from a given codebase structure.
+
+Classes:
+
+    Json: 
+        Handles JSON serialization of data.
+
+    Html:
+        Generates HTML documentation with a basic style.
+
+    Markdown:
+        Generates Markdown documentation.
+
+    Builder:
+        Orchestrates the building process for different output formats 
+        (HTML, Markdown, JSON).
+"""
+
 import json
-
-
-class FileOpts:
-
-    def write_file(self, path, text):
-        try:
-            with open(f"{path}", "w", encoding="utf-8") as file:
-                file.write(text)
-        except FileNotFoundError as e:
-            return f"FileNotFoundError: Could not open file at {path}: {e}"
-        except PermissionError as e:
-            return f"PermissionError: Insufficient permissions to write to {path}: {e}"
-        except IOError as e:
-            return f"IOError: An I/O error occurred while writing to {path}: {e}"
-        except Exception as e:
-            return f"An unexpected error occurred while writing to {path}: {e}"
-        return None
+from .terminal import Print
+from .file_tools import FileTools
 
 
 class Json(Print):
+    """
+    A class responsible for serializing data into JSON format.
+
+    Inherits from the `Print` class (assumed to provide printing functionalities).
+
+    Args:
+        Print: Base class for printing messages with color.
+    """
 
     def build_json(self, data):
+        """
+        Serializes the given data into a JSON string.
+
+        Args:
+            data: The data to be serialized.
+
+        Returns:
+            The JSON string representation of the data if successful,
+            otherwise None.
+
+        Raises:
+            TypeError: If the data contains unsupported types for JSON serialization.
+            ValueError: If the data contains invalid values for JSON serialization.
+            Exception: For any other unexpected errors during serialization.
+        """
+
         try:
             json_string = json.dumps(data, indent=4)
             return json_string
-        except TypeError as e:
+        except TypeError as error:
             self.print(
-                f"TypeError: {e}. Data may contain unsupported types for JSON serialization.",
+                f"TypeError: {error}. Data may contain unsupported types for JSON serialization.",
                 color="red",
             )
             return None
-        except ValueError as e:
+        except ValueError as error:
             self.print(
-                f"ValueError: {e}. Data may contain invalid values for JSON serialization.",
+                f"ValueError: {error}. Data may contain invalid values for JSON serialization.",
                 color="red",
             )
             return None
-        except Exception as e:
+        except Exception as error:
             self.print(
-                f"An unexpected error occurred during JSON serialization: {e}",
+                f"An unexpected error occurred during JSON serialization: {error}",
                 color="red",
             )
             return None
@@ -166,13 +194,26 @@ class Html:
           str: The HTML representation of the folder and its contents.
         """
         directory_name = directory["name"] if "name" in directory else ""
-        files_content = f"<section>{''.join([self.build_file(file) for file in directory['files']] if "files" in directory else "")}</section>"
-        folder_content = f"{''.join([self.build_directory(directory_item) for directory_item in directory['directories']]) if "directories" in directory else ""}"
+        file_list = (
+            [self.build_file(file) for file in directory["files"]]
+            if "files" in directory
+            else ""
+        )
+        files_content = f"<section>{''.join(file_list)}</section>"
+        folder_list = (
+            [
+                self.build_directory(directory_item)
+                for directory_item in directory["directories"]
+            ]
+            if "directories" in directory
+            else []
+        )
+        folder_content = f"{''.join(folder_list) }"
 
         if base:
             return f"""<section class="container">
-        <h1>{directory_name}</h1>        
-        {files_content}        
+        <h1>{directory_name}</h1>
+        {files_content}
         {folder_content}
         </section>
         """
@@ -198,13 +239,18 @@ class Html:
         """
         start_tag = "<details>"
         title = f"<summary>{file['name']}</summary>"
+        class_list = [
+            self.build_item(item, item_type="Class")
+            for item in file["content"]["classes"]
+        ]
         classes_content = (
-            f"<div>{''.join([self.build_item(item, item_type="Class") for item in file['content']['classes']])}</div>"
+            f"<div>{''.join(class_list)}</div>"
             if len(file["content"]["classes"]) > 0
             else ""
         )
+        function_list = [self.build_item(item) for item in file["content"]["functions"]]
         functions_content = (
-            f"<div>{''.join([self.build_item(item) for item in file['content']['functions']])}</div>"
+            f"<div>{''.join(function_list)}</div>"
             if len(file["content"]["functions"]) > 0
             else ""
         )
@@ -292,6 +338,7 @@ class Html:
         Returns:
           str: The HTML representation of the parameters and return values sections.
         """
+
         params = [
             item
             for item in items
@@ -302,8 +349,14 @@ class Html:
             for item in items
             if len(item["args"]) > 0 and item["args"][0] == "returns"
         ]
-        params_tag = f" {'<h4>Params</h4>' if len(params) > 0 else ''}{''.join([self.build_list_item(item) for item in params])}"
-        returns_tag = f"{'<h4>Returns</h4>' if len(returns) > 0 else ''}{''.join([self.build_list_item(item) for item in returns])}"
+        param_list = [self.build_list_item(item) for item in params]
+        return_list = [self.build_list_item(item) for item in returns]
+        params_tag = (
+            f" {'<h4>Params</h4>' if len(params) > 0 else ''}{"".join(param_list)}"
+        )
+        returns_tag = (
+            f"{'<h4>Returns</h4>' if len(returns) > 0 else ''}{"".join(return_list)}"
+        )
         return params_tag + returns_tag
 
     def build_list_item(self, item):
@@ -316,8 +369,10 @@ class Html:
         Returns:
           str: The HTML representation of the parameter or return value list item.
         """
-
-        return f'<li class="doc-string-list-item">{item['arg_name'] if "arg_name" in item else ''} ({item['type_name']}){item['description']}</li>'
+        arg_name = item["arg_name"] if "arg_name" in item else ""
+        type_name = item["type_name"]
+        description = item["description"]
+        return f'<li class="doc-string-list-item">{arg_name} ({type_name}){description}</li>'
 
 
 class Markdown:
@@ -509,13 +564,13 @@ class Markdown:
             if len(item["args"]) > 0 and item["args"][0] == "returns"
         ]
         params_tag = (
-            f"#### Parameters:\n"
+            "#### Parameters:\n"
             + "\n".join([self.build_list_item(item) for item in params])
             if len(params) > 0
             else ""
         )
         returns_tag = (
-            f"#### Returns:\n"
+            "#### Returns:\n"
             + "\n".join([self.build_list_item(item) for item in returns])
             if len(returns) > 0
             else ""
@@ -533,18 +588,47 @@ class Markdown:
           str: The Markdown representation of the parameter or return value list item.
         """
 
-        return f"- `{item['arg_name'] if 'arg_name' in item else ''} ({item['type_name']})`: {item['description']}"
+        arg_name = item["arg_name"] if "arg_name" in item else ""
+        return f"- `{arg_name} ({item['type_name']})`: {item['description']}"
 
 
-class Builder(FileOpts):
+class Builder:
+    """
+    A class responsible for building output content based on different formats.
+
+    This class utilizes helper classes (Html, Markdown, Json) to generate
+    content in the specified format.
+
+    """
 
     def __init__(self):
+        """
+        Initializes the Builder instance.
+
+        Sets up initial attributes:
+            - `self.content`: Stores the generated content.
+            - `self.html`: An instance of the Html class.
+            - `self.markdown`: An instance of the Markdown class.
+            - `self.json`: An instance of the Json class.
+        """
+
         self.content = None
         self.html = Html()
         self.markdown = Markdown()
         self.json = Json()
 
     def build(self, tree, output_type):
+        """
+        Builds the output content based on the specified output type.
+
+        Args:
+            tree: The input data structure (likely a tree-like representation).
+            output_type: The desired output format ("html", "markdown", or "json").
+
+        Returns:
+            The generated content string.
+        """
+
         if output_type == "html":
             self.content = self.html.build_html(tree)
         if output_type == "markdown":
@@ -555,5 +639,16 @@ class Builder(FileOpts):
         return self.content
 
     def output_content(self, output_path):
+        """
+        Writes the generated content to the specified output path.
 
-        return self.write_file(output_path, self.content)
+        Utilizes the `write_file` method inherited from the `FileOpts` base class.
+
+        Args:
+            output_path: The path to the output file.
+
+        Returns:
+            The result of the `write_file` operation (likely a boolean indicating success).
+        """
+
+        return FileTools.write_file(output_path, self.content)

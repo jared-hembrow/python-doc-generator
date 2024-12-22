@@ -1,3 +1,11 @@
+"""
+Classes:
+
+    FileTools:
+        Provides static methods for file and directory manipulation.
+        Includes functionalities for building file/directory structures and parsing docstrings.
+"""
+
 import ast
 from os import listdir
 from os.path import isdir, basename, abspath
@@ -9,6 +17,41 @@ class FileTools:
     This class provides static methods for working with files and directories,
     including building file/directory structures and parsing docstrings.
     """
+
+    @staticmethod
+    def write_file(path, text):
+        """
+        Writes the given text to the specified file path.
+
+        Args:
+            path (str): The path to the file where the text will be written.
+            text (str): The text content to be written to the file.
+
+        Returns:
+            None: If the file was written successfully.
+            str: An error message string if any exceptions occur during writing.
+                Possible error messages include:
+                    - FileNotFoundError: If the specified path does not exist.
+                    - PermissionError: If the user lacks the necessary permissions
+                                    to write to the file.
+                    - IOError: If an I/O error occurs during the write operation.
+                    - Exception: For any other unexpected errors.
+        """
+
+        try:
+            with open(f"{path}", "w", encoding="utf-8") as file:
+                file.write(text)
+        except FileNotFoundError as error:
+            return f"FileNotFoundError: Could not open file at {path}: {error}"
+        except PermissionError as error:
+            return (
+                f"PermissionError: Insufficient permissions to write to {path}: {error}"
+            )
+        except IOError as error:
+            return f"IOError: An I/O error occurred while writing to {path}: {error}"
+        except Exception as error:
+            return f"An unexpected error occurred while writing to {path}: {error}"
+        return None
 
     @staticmethod
     def build_file(file_path):
@@ -110,21 +153,21 @@ class FileTools:
                                    and a list of methods with their docstrings.
         """
 
-        functions = list()
-        classes = list()
-        with open(file_path, "r") as file:
+        functions = []
+        classes = []
+        with open(file_path, "r", encoding="utf-8") as file:
             try:
                 tree = ast.parse(file.read())
             except SyntaxError:
                 print(f"Syntax error in {file_path}")
-                return list()
+                return []
 
             for node in ast.walk(tree):
                 # print("NODE:", node, isinstance(node, ast.FunctionDef))
                 if isinstance(node, ast.ClassDef):
                     class_doc = FileTools.build_doc_string(node)
                     if class_doc:
-                        class_doc["methods"] = list()
+                        class_doc["methods"] = []
                         for method in node.body:
                             doc = FileTools.build_doc_string(method)
                             if doc:
@@ -140,6 +183,20 @@ class FileTools:
 
     @staticmethod
     def build_directory(directory_path):
+        """
+        Builds a dictionary representation of a given directory.
+
+        Args:
+            directory_path (str): The path to the directory.
+
+        Returns:
+            dict: A dictionary containing the following information:
+                - "name": The basename of the directory.
+                - "type": "directory" (indicating the type of the item).
+                - "path": The absolute path to the directory.
+                - "items": A list of items (files and subdirectories) within the directory.
+        """
+
         absolute_path = abspath(directory_path)
         return {
             "name": basename(absolute_path),
@@ -181,6 +238,7 @@ class FileTools:
         Finally, removes the "items" key from the directory dictionary
         as it's no longer needed.
         """
+
         absolute_path = abspath(base_path)
         directory = FileTools.build_directory(absolute_path)
 
@@ -192,7 +250,7 @@ class FileTools:
                 and not item.startswith(".")
             ):
                 if "directories" not in directory:
-                    directory["directories"] = list()
+                    directory["directories"] = []
                 new_directory = FileTools.build_directories(item_path)
                 add = False
                 if (
@@ -208,7 +266,7 @@ class FileTools:
             else:
                 if item.endswith(".py"):
                     if "files" not in directory:
-                        directory["files"] = list()
+                        directory["files"] = []
                     new_file = FileTools.build_file(item_path)
                     if (
                         len(new_file["content"]["functions"]) > 0
