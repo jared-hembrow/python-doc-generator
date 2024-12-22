@@ -263,7 +263,6 @@ class Cli(PrintInfoToTerminal):
         Stage 2 - Get Files and doc strings
         stage 3 - Output HTML & CSS files
         """
-        # try:
         #  STAGE 1:
         self.config_stage()
 
@@ -273,6 +272,3 @@ class Cli(PrintInfoToTerminal):
 
         # STAGE 3:
         self.build_output_stage()
-
-        # except Exception as error:
-        #     self.print(f"Main Error: {error}", color="red")

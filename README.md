@@ -67,6 +67,18 @@ This will scan the `src` directory for Python files, extract their docstrings, a
 - Supports interactive mode for easy configuration.
 - Command-line arguments for flexibility.
 
-## License
+## Licenses
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+- [Python](https://www.python.org/)
+
+  - Python has a non-exclusive, roylty-free rights [License](https://docs.python.org/3/license.html#terms-and-conditions-for-accessing-or-otherwise-using-python) to use copy, distribute and create derivative works of Python 3.13.1.
+
+  - Permission to share: To allow others to use the software or your derivative works.
+  - Conditions:
+    - Attribution: You must retain the PSF copyright notice in all copies or derivatives.
+    - Changes to derivatives: If you create a derivative work, you must include a summary of the changes made to Python 3.13.1.
+  - By using Python 3.13.1, you agree to be bound by the terms of this license.
+
+- [Docstring_parser](https://pypi.org/project/docstring_parser/)
+
+  - This python library is under the [MIT license](https://github.com/rr-/docstring_parser/blob/master/LICENSE.md). this library is also Copyright (c) 2018 Marcin Kurczewski
