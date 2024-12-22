@@ -166,3 +166,4 @@ cython_debug/
 PyGithub
 arrow
 output
+output/*
