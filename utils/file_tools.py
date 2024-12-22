@@ -136,6 +136,25 @@ class FileTools:
         return None
 
     @staticmethod
+    def ast_parse(file_path):
+        """Parses a Python file and returns the AST (Abstract Syntax Tree).
+
+        Args:
+            file_path (str): Path to the Python file.
+
+        Returns:
+            ast.AST: The AST of the parsed Python file, or None on errors.
+            Exception: error object with error message
+        """
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                return ast.parse(file.read()), None
+        except FileNotFoundError:
+            return None, f"File not found: {file_path}"
+        except IOError as error:
+            return None, f"Error reading file: {file_path} ({error})"
+
+    @staticmethod
     def build_file_content(file_path):
         """
         Analyzes a Python file and extracts information about its functions, classes,
@@ -155,29 +174,28 @@ class FileTools:
 
         functions = []
         classes = []
-        with open(file_path, "r", encoding="utf-8") as file:
-            try:
-                tree = ast.parse(file.read())
-            except SyntaxError:
-                print(f"Syntax error in {file_path}")
-                return []
 
-            for node in ast.walk(tree):
-                # print("NODE:", node, isinstance(node, ast.FunctionDef))
-                if isinstance(node, ast.ClassDef):
-                    class_doc = FileTools.build_doc_string(node)
-                    if class_doc:
-                        class_doc["methods"] = []
-                        for method in node.body:
-                            doc = FileTools.build_doc_string(method)
-                            if doc:
-                                class_doc["methods"].append(doc)
-                        classes.append(class_doc)
+        # get AST (Abstract Syntax Tree) of file
+        tree, error = FileTools.ast_parse(file_path)
 
-                else:
-                    doc = FileTools.build_doc_string(node)
-                    if doc:
-                        functions.append(doc)
+        if error is not None:
+            raise Exception(error)
+
+        # Loop through AST for classes and functions
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef):
+                class_doc = FileTools.build_doc_string(node)
+                if class_doc:
+                    class_doc["methods"] = []
+                    for method in node.body:
+                        doc = FileTools.build_doc_string(method)
+                        if doc:
+                            class_doc["methods"].append(doc)
+                    classes.append(class_doc)
+            else:
+                doc = FileTools.build_doc_string(node)
+                if doc:
+                    functions.append(doc)
 
         return {"functions": functions, "classes": classes}
 
@@ -198,6 +216,8 @@ class FileTools:
         """
 
         absolute_path = abspath(directory_path)
+
+        # Create dict detailing directory
         return {
             "name": basename(absolute_path),
             "type": "directory",
@@ -240,10 +260,15 @@ class FileTools:
         """
 
         absolute_path = abspath(base_path)
+
+        # Create dict with directory contents
         directory = FileTools.build_directory(absolute_path)
 
+        # Search directions items for files and directories
         for item in directory["items"]:
             item_path = f"{absolute_path}/{item}"
+
+            # If directory call this function to create new directory dict
             if (
                 isdir(item_path)
                 and not item.startswith("__")
@@ -252,6 +277,9 @@ class FileTools:
                 if "directories" not in directory:
                     directory["directories"] = []
                 new_directory = FileTools.build_directories(item_path)
+
+                # Check to see if  directory has contents
+                # add to parent directory if contents found
                 add = False
                 if (
                     "directories" in new_directory
@@ -263,6 +291,8 @@ class FileTools:
 
                 if add:
                     directory["directories"].append(new_directory)
+
+            # If item is a python file build file dict
             else:
                 if item.endswith(".py"):
                     if "files" not in directory:
@@ -273,5 +303,8 @@ class FileTools:
                         or len(new_file["content"]["classes"]) > 0
                     ):
                         directory["files"].append(new_file)
+
+        # Remove excess list of directory contents
         del directory["items"]
+
         return directory
