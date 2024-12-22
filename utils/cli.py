@@ -1,12 +1,12 @@
 import argparse
-from utils.terminal import Terminal
-from utils.html import Html
+from utils.output import Builder
+from utils.terminal import PrintInfoToTerminal
 from utils.docs import FileTools
+from os.path import isdir, abspath
+from os import mkdir
 
-from os.path import isdir
 
-
-class Cli:
+class Cli(PrintInfoToTerminal):
     """
     This class represents the Command-Line Interface (CLI) for the documentation
     generator. It handles user input, configures the program, extracts
@@ -31,6 +31,7 @@ class Cli:
     # Properties
     root_path = "./"
     output_path = "output"
+    output_type = "html"
     # file_tree = {}
 
     def __init__(self):
@@ -59,7 +60,11 @@ class Cli:
         )
         parser.add_argument("-p", "--path", help="Path")
         parser.add_argument("-o", "--out", help="Output path", default="output")
+        parser.add_argument("-ot", "--outputtype", help="Output type", default="html")
         self.args = parser.parse_args()
+
+        # Builder
+        self.builder = Builder()
 
     def run_interactive_mode(self):
         """
@@ -84,16 +89,32 @@ class Cli:
             if isdir(user_input):
                 input_path = user_input
             else:
-                self.print.print(
-                    "This is an invalid path, please try again", color="red"
-                )
+                self.print("This is an invalid path, please try again", color="red")
 
         # Get user input for output
         output_path = input("Please enter an output path: ")
 
+        # Get users prefered output type
+        output_type = "html"
+        while True:
+            out_types = {
+                "1": "html",
+                "2": "markdown",
+                "3": "json",
+                "html": "html",
+                "markdown": "markdown",
+                "json": "json",
+            }
+            get_output_type = input("Please select output type: ")
+            if get_output_type in out_types:
+                output_type = out_types[get_output_type]
+                break
+            self.print("Invalid option, please try again", color="red")
+
         # Assign user input as properties
         self.root_path = input_path
         self.output_path = output_path
+        self.output_type = output_type
 
     def config_stage(self):
         """
@@ -112,7 +133,7 @@ class Cli:
         #  STAGE 1:
         # Configure Object
         if self.args.interactive:
-            self.print.print("Entering Interactive Mode", color="yellow")
+            self.print("Entering Interactive Mode", color="yellow")
             self.run_interactive_mode()
         else:
             if self.args.path is not None:
@@ -120,15 +141,18 @@ class Cli:
 
             if self.args.out is not None:
                 self.output_path = self.args.out
+            if self.args.outputtype is not None:
+                self.output_type = self.args.outputtype
 
         # Display Introduction Message
-        Terminal.print_introduction()
+        self.print_introduction()
 
         # Display Objects configuration
-        Terminal.print_config(
+        self.print_config(
             {
                 "Input Path": self.root_path,
                 "Output Path": self.output_path,
+                "Output Type": self.output_type,
             }
         )
 
@@ -148,11 +172,46 @@ class Cli:
         # STAGE 2:
         self.file_tree = FileTools.build_directories(self.root_path)
 
+    def check_output_directory(self, path):
+        """Check if the output directory is valid and if not create it
+
+        Args:
+            path (str): path of the output directory
+
+        Returns:
+            bool: result of the functions success
+        """
+        # Check output folder
+        try:
+            if not isdir(path):
+                mkdir(path)
+        except FileNotFoundError as e:
+            self.print(
+                f"FileNotFoundError: The parent directory for '{path}' does not exist."
+            )
+            return False
+        except PermissionError as e:
+            self.print(
+                f"PermissionError: You do not have permission to create the directory '{path}'."
+            )
+            return False
+        except OSError as e:
+            self.print(
+                f"OSError: An error occurred while creating the directory '{path}': {e}"
+            )
+            return False
+        except Exception as e:
+            self.print(
+                f"An unexpected error occurred while creating the directory '{path}': {e}"
+            )
+            return False
+        return True
+
     def build_output_stage(self):
         """
-        Generates the HTML output.
+        Generates the content and write to output.
 
-        Builds the HTML content using the `Html` object and
+        Builds the content using the `builder` object and
         writes it to the specified output file.
 
         Args:
@@ -163,12 +222,36 @@ class Cli:
         """
 
         # STAGE 3:
-        html = Html()
-        output_html = html.build_html(self.file_tree)
+        file_path = abspath(f"{self.output_path}")
+        file_name = ""
 
-        write = html.write_html_file(self.output_path, output_html)
-        if write is not None:
-            Terminal.print(write, color="red")
+        # Check output folder
+        check_out_dir = self.check_output_directory(file_path)
+        if not check_out_dir:
+            self.print("Error with output directory!", color="red")
+            return
+
+        self.print(f"Output: {self.output_type} to '{file_path}'", color="green")
+
+        # Build the content
+        content = self.builder.build(self.file_tree, self.output_type)
+        if content is None:
+            self.print("Unable to Build Content", color="red")
+            return
+
+        if self.output_type == "html":
+            file_name = "index.html"
+        if self.output_type == "markdown":
+            file_name = "doc.md"
+        if self.output_type == "json":
+            file_name = "doc.json"
+
+        # Output the content
+        result = self.builder.output_content(f"{file_path}/{file_name}")
+        if result is not None:
+            self.print(result, color="red")
+        else:
+            self.print(f"Output complete", color="green")
 
     def run(self):
         """Run The main CLI program
@@ -176,13 +259,16 @@ class Cli:
         Stage 2 - Get Files and doc strings
         stage 3 - Output HTML & CSS files
         """
+        try:
+            #  STAGE 1:
+            self.config_stage()
 
-        #  STAGE 1:
-        self.config_stage()
+            # STAGE 2:
+            self.files_and_doc_strings_stage()
+            self.print_directory_branch(self.file_tree, level=0)
 
-        # STAGE 2:
-        self.files_and_doc_strings_stage()
-        Terminal.print_directory_branch(self.file_tree, level=0)
+            # STAGE 3:
+            self.build_output_stage()
 
-        # STAGE 3:
-        self.build_output_stage()
+        except Exception as e:
+            self.print(f"Error: {e}", color="red")

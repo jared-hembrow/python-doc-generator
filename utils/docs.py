@@ -1,6 +1,6 @@
 import ast
 from os import listdir
-from os.path import isdir, basename, join, abspath
+from os.path import isdir, basename, abspath
 from docstring_parser import parse
 
 
@@ -117,7 +117,7 @@ class FileTools:
                 tree = ast.parse(file.read())
             except SyntaxError:
                 print(f"Syntax error in {file_path}")
-                return []
+                return list()
 
             for node in ast.walk(tree):
                 # print("NODE:", node, isinstance(node, ast.FunctionDef))
@@ -150,6 +150,37 @@ class FileTools:
 
     @staticmethod
     def build_directories(base_path):
+        """
+        Recursively builds a hierarchical representation of the directory structure
+        starting from the given base path.
+
+        Args:
+            base_path (str): The absolute or relative path to the base directory.
+
+        Returns:
+            dict: A dictionary representing the directory structure, containing:
+                - name (str): The name of the directory.
+                - type (str): "directory".
+                - path (str): The absolute path to the directory.
+                - directories (list): A list of dictionaries, each representing a
+                                    subdirectory within this directory.
+                - files (list): A list of dictionaries, each representing a Python
+                                file within this directory.
+
+        This function iterates through the contents of the given directory.
+        For each item:
+            - If it's a directory (and not a hidden directory or a special system directory):
+                - Recursively calls `build_directories` to build the subdirectory structure.
+                - Adds the subdirectory to the "directories" list if it contains
+                subdirectories or Python files.
+            - If it's a Python file:
+                - Builds a file dictionary using `FileTools.build_file`.
+                - Adds the file dictionary to the "files" list if it contains
+                functions or classes.
+
+        Finally, removes the "items" key from the directory dictionary
+        as it's no longer needed.
+        """
         absolute_path = abspath(base_path)
         directory = FileTools.build_directory(absolute_path)
 

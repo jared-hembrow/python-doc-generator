@@ -1,6 +1,6 @@
 # Python Documentation Generator
 
-This is a command-line tool that helps you automatically generate HTML documentation from Python files. It extracts docstrings and organizes them into a user-friendly HTML format.
+This is a command-line tool that helps you automatically generate documentation from Python files. It extracts docstrings and organizes them into a user-friendly format.
 
 ## Installation
 
@@ -38,7 +38,7 @@ There are two ways to use this tool:
 python cli.py -i
 ```
 
-This mode will prompt you for the path to the directory containing your Python files and the desired output path for the generated HTML files.
+This mode will prompt you for the path to the directory containing your Python files and the desired output path for the generated file.
 
 **2. Command-Line Arguments:**
 
@@ -47,22 +47,23 @@ python cli.py -p <path_to_python_files> -o <output_path>
 ```
 
 - `-p`: Path to the directory containing your Python files (required).
-- `-o`: Path to the directory where you want to save the generated HTML files (optional, defaults to "output").
+- `-o`: Path to the directory where you want to save the generated output file (optional, defaults to "output").
+- `-ot`: Output type (optional, defaults to "html") - options: "html", "markdown", "json"
 
 ## Example
 
 Let's say your Python files are located in a directory called `src` and you want to generate the HTML documentation in a directory called `docs`. You can use the following command:
 
 ```bash
-python cli.py -p src -o docs
+python cli.py -p src -o docs -ot html
 ```
 
-This will scan the `src` directory for Python files, extract their docstrings, and generate HTML documentation files in the `docs` directory.
+This will scan the `src` directory for Python files, extract their docstrings, and generate a documentation file in the `docs` directory.
 
 ## Features
 
 - Extracts docstrings from Python files.
-- Generates well-structured HTML documentation.
+- Generates a well-structured documentation file.
 - Supports interactive mode for easy configuration.
 - Command-line arguments for flexibility.
 
