@@ -1,134 +1,55 @@
+import ast
 from os import listdir
-from os.path import isdir, basename, join
+from os.path import isdir, basename, join, abspath
 from docstring_parser import parse
-from importlib.util import spec_from_file_location, module_from_spec
 
 
-class FileTree:
+class FileTools:
     """
-    This class represents a file tree structure for a codebase.
-
-    Attributes:
-        root_path (str): The path to the root directory of the file tree.
-        file_type (str, optional): The file extension to search for (defaults to ".py").
-        docstring_index (list): A list to keep track of processed function names.
-        root_folder (dict): A dictionary representing the root folder of the tree.
+    This class provides static methods for working with files and directories,
+    including building file/directory structures and parsing docstrings.
     """
 
-    def __init__(self, root_path, file_type=".py"):
+    @staticmethod
+    def build_file(file_path):
         """
-        Initializes a FileTree object.
-
-        Args:
-            root_path (str): The path to the root directory of the file tree.
-            file_type (str, optional): The file extension to search for (defaults to ".py").
-        """
-
-        self.root_path = root_path
-        self.file_type = file_type
-        self.docstring_index = []
-        self.root_folder = self.search_folder(self.root_path, self.file_type)
-
-    def search_folder(self, path, file_type):
-        """
-        Recursively builds a dictionary representation of a folder and its contents.
-
-        Args:
-            path (str): The path to the folder.
-            file_type (str): The file extension to search for.
-
-        Returns:
-            dict: A dictionary representing the folder structure, including subfolders,
-            files, and their docstrings (if any).
-        """
-
-        folder = {"type": "folder", "path": path, "name": basename(path), "items": []}
-
-        for f in listdir(path):
-            file_path = join(path, f)
-
-            if isdir(file_path) and not f.startswith("__"):
-                folder["folders"] = []
-                folder["folders"].append(self.search_folder(file_path, file_type))
-
-            elif f.endswith(file_type):
-                folder["items"].append(
-                    {
-                        "type": "file",
-                        "file_type": file_type,
-                        "path": file_path,
-                        "file_name": f,
-                        "name": f.strip(file_type),
-                        "doc_strings": self.get_docstring(file_path),
-                    }
-                )
-
-        return folder
-
-    def import_module_from_file(self, file_path):
-        """
-        Dynamically imports a Python module from a file path.
+        Builds a dictionary representation of a Python file.
 
         Args:
             file_path (str): The path to the Python file.
 
         Returns:
-            module: The imported Python module.
+            dict: A dictionary containing information about the file, including:
+                - name (str): The name of the file without the ".py" extension.
+                - type (str): "file".
+                - path (str): The absolute path to the file.
+                - content (dict): The content of the file, including functions and classes.
         """
 
-        spec = spec_from_file_location("module.name", file_path)
-        module = module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return module
+        absolute_path = abspath(file_path)
+        return {
+            "name": basename(absolute_path).strip(".py"),
+            "type": "file",
+            "path": absolute_path,
+            "content": FileTools.build_file_content(absolute_path),
+        }
 
-    def extract_function_docstrings(self, module):
+    @staticmethod
+    def parse_doc_string(doc_string):
         """
-        Extracts docstrings from functions and sub-functions within a module.
+        Parses a docstring using the `docstring_parser` library and converts it
+        into a dictionary representation.
 
         Args:
-            module (module): The Python module to extract docstrings from.
+            doc_string (str): The docstring to be parsed.
 
         Returns:
-            dict (or None): A dictionary containing the module name and a list of
-            extracted docstring information, or None if no docstrings are found.
+            dict: A dictionary containing the parsed docstring information.
         """
 
-        doc_strings = []
-        for name, obj in module.__dict__.items():
-            if callable(obj) and obj.__module__.startswith("module.name"):
-                doc = {
-                    "name": name,
-                    "sub_doc_strings": self.extract_function_docstrings(obj),
-                    "doc_strings": None,
-                }
-
-                docstring = obj.__doc__
-                if docstring:
-                    if name not in self.docstring_index:
-                        doc["doc_strings"] = self.parse_doc_string(parse(docstring))
-
-                if doc["sub_doc_strings"] is not None or doc["doc_strings"] is not None:
-                    doc_strings.append(doc)
-                    self.docstring_index.append(name)
-
-        if doc_strings is None or len(doc_strings) < 1:
-            return None
-        return {"name": module.__name__, "doc_strings": doc_strings}
-
-    def parse_doc_string(self, docstring):
-        """
-        Parses an AST representation of a docstring into a dictionary.
-
-        Args:
-            docstring (ast.AST): The AST representation of the docstring.
-
-        Returns:
-            dict: A dictionary containing the extracted information from the docstring,
-            including potential metadata (if present).
-        """
-
+        doc = parse(doc_string)
         converted = {"meta": []}
-        for name, obj in docstring.__dict__.items():
+        for name, obj in doc.__dict__.items():
             if name == "style" and obj is not None:
                 converted["style"] = {"name": obj.name, "value": obj.value}
                 continue
@@ -145,17 +66,123 @@ class FileTree:
                 converted[name] = obj
         return converted
 
-    def get_docstring(self, path):
+    @staticmethod
+    def build_doc_string(node):
         """
-        Extracts docstrings from a Python file at the specified path.
+        Extracts function or class name and docstring information from an AST node.
 
         Args:
-            path (str): The path to the Python file.
+            node (ast.AST): An AST node representing a function or class definition.
 
         Returns:
-            dict (or None): A dictionary containing the module name and a list of
-            extracted docstring information, or None if the file cannot be imported
-            or no docstrings are found.
+            dict (or None): A dictionary containing information about the function/class
+                             and its docstring (if present), or None if no docstring is found.
+
+        Raises:
+            TypeError: If the provided node is not an ast.FunctionDef or ast.ClassDef.
         """
 
-        return self.extract_function_docstrings(self.import_module_from_file(path))
+        if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+            func_name = node.name
+            docstring = ast.get_docstring(node)
+            if docstring:
+                return {
+                    "name": func_name,
+                    "doc_string": FileTools.parse_doc_string(docstring),
+                }
+        return None
+
+    @staticmethod
+    def build_file_content(file_path):
+        """
+        Analyzes a Python file and extracts information about its functions, classes,
+        and their docstrings.
+
+        Args:
+            file_path (str): The path to the Python file.
+
+        Returns:
+            dict: A dictionary containing information about the file's content, including:
+                - functions (list): A list of dictionaries representing functions,
+                                    each containing name and parsed docstring (if available).
+                - classes (list): A list of dictionaries representing classes,
+                                   each containing name, parsed docstring (if available),
+                                   and a list of methods with their docstrings.
+        """
+
+        functions = list()
+        classes = list()
+        with open(file_path, "r") as file:
+            try:
+                tree = ast.parse(file.read())
+            except SyntaxError:
+                print(f"Syntax error in {file_path}")
+                return []
+
+            for node in ast.walk(tree):
+                # print("NODE:", node, isinstance(node, ast.FunctionDef))
+                if isinstance(node, ast.ClassDef):
+                    class_doc = FileTools.build_doc_string(node)
+                    if class_doc:
+                        class_doc["methods"] = list()
+                        for method in node.body:
+                            doc = FileTools.build_doc_string(method)
+                            if doc:
+                                class_doc["methods"].append(doc)
+                        classes.append(class_doc)
+
+                else:
+                    doc = FileTools.build_doc_string(node)
+                    if doc:
+                        functions.append(doc)
+
+        return {"functions": functions, "classes": classes}
+
+    @staticmethod
+    def build_directory(directory_path):
+        absolute_path = abspath(directory_path)
+        return {
+            "name": basename(absolute_path),
+            "type": "directory",
+            "path": absolute_path,
+            "items": listdir(absolute_path),
+        }
+
+    @staticmethod
+    def build_directories(base_path):
+        absolute_path = abspath(base_path)
+        directory = FileTools.build_directory(absolute_path)
+
+        for item in directory["items"]:
+            item_path = f"{absolute_path}/{item}"
+            if (
+                isdir(item_path)
+                and not item.startswith("__")
+                and not item.startswith(".")
+            ):
+                if "directories" not in directory:
+                    directory["directories"] = list()
+                new_directory = FileTools.build_directories(item_path)
+                add = False
+                if (
+                    "directories" in new_directory
+                    and len(new_directory["directories"]) > 0
+                ):
+                    add = True
+                if "files" in new_directory and len(new_directory["files"]) > 0:
+                    add = True
+
+                if add:
+                    directory["directories"].append(new_directory)
+            else:
+                if item.endswith(".py"):
+                    if "files" not in directory:
+                        directory["files"] = list()
+                    new_file = FileTools.build_file(item_path)
+                    if (
+                        len(new_file["content"]["functions"]) > 0
+                        or len(new_file["content"]["classes"]) > 0
+                    ):
+                        directory["files"].append(new_file)
+        del directory["items"]
+        return directory

@@ -1,10 +1,8 @@
 import argparse
-from utils.terminal import TerminalPrint
+from utils.terminal import Terminal
 from utils.html import Html
-from utils.docs import FileTree
+from utils.docs import FileTools
 
-# from docstring_parser.common import Docstring
-# import json
 from os.path import isdir
 
 
@@ -17,8 +15,6 @@ class Cli:
     Attributes:
         root_path (str): The root directory to scan for Python files.
         output_path (str): The directory where the generated HTML will be saved.
-        file_tree (dict): A dictionary representing the file structure.
-        file_type (str): The extension of files to be processed (e.g., ".py").
 
     Methods:
         __init__(self): Initializes the CLI, parses command-line arguments,
@@ -33,10 +29,9 @@ class Cli:
     """
 
     # Properties
-    root_path = "./utils"
+    root_path = "./"
     output_path = "output"
-    file_tree = {}
-    file_type = ".py"
+    # file_tree = {}
 
     def __init__(self):
         """
@@ -65,12 +60,6 @@ class Cli:
         parser.add_argument("-p", "--path", help="Path")
         parser.add_argument("-o", "--out", help="Output path", default="output")
         self.args = parser.parse_args()
-
-        # Property for object that will handle printing to terminal
-        self.print = TerminalPrint()
-
-        # Property for the object that will handle the creation of html
-        self.html = Html()
 
     def run_interactive_mode(self):
         """
@@ -133,10 +122,10 @@ class Cli:
                 self.output_path = self.args.out
 
         # Display Introduction Message
-        self.print.print_introduction()
+        Terminal.print_introduction()
 
         # Display Objects configuration
-        self.print.print_config(
+        Terminal.print_config(
             {
                 "Input Path": self.root_path,
                 "Output Path": self.output_path,
@@ -147,10 +136,8 @@ class Cli:
         """
         Extracts files and their docstrings.
 
-        Creates a `FileTree` object to traverse the file system
+        Creates a `FileTree` to traverse the file system
         and extract information about files and their docstrings.
-        Displays the file tree to the user.
-
         Args:
             None
 
@@ -159,11 +146,7 @@ class Cli:
         """
 
         # STAGE 2:
-        # Get File tree
-        self.file_tree = FileTree(self.root_path)
-
-        # Display File Tree
-        self.print.print_folder_branch(self.file_tree.root_folder, level=0)
+        self.file_tree = FileTools.build_directories(self.root_path)
 
     def build_output_stage(self):
         """
@@ -180,11 +163,12 @@ class Cli:
         """
 
         # STAGE 3:
-        self.html.build_html(self.file_tree.root_folder)
+        html = Html()
+        output_html = html.build_html(self.file_tree)
 
-        write = self.html.write_html_file(self.output_path)
+        write = html.write_html_file(self.output_path, output_html)
         if write is not None:
-            self.print.print(write, color="red")
+            Terminal.print(write, color="red")
 
     def run(self):
         """Run The main CLI program
@@ -198,6 +182,7 @@ class Cli:
 
         # STAGE 2:
         self.files_and_doc_strings_stage()
+        Terminal.print_directory_branch(self.file_tree, level=0)
 
         # STAGE 3:
         self.build_output_stage()
